@@ -14,8 +14,8 @@ var util = require('util')
   , proc
   , watched = []
   
-if (process.argv.length <= 2) {
-  console.log('usage: nolife <dir> <program> [param] [...]')
+if (process.argv.length <= 4) {
+  console.log('usage: nolife <dirname_to_watch> <ext,ens,ion,s,to,wa,tch> <program> [param] [...]')
   process.exit()
 }
 
@@ -27,11 +27,14 @@ function log() {
   console.log.apply(console, args)
 }
 
+var extensions = process.argv[3].toLowerCase().split(',')
+log('watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join(' .'))
+
 ;(function respawn(app) {
   var restartTimeout
     , filename = path.join(process.cwd(), app[0])
     , dirname = path.resolve(filename)
-    , args = app.slice(2)
+    , args = app.slice(3)
 
   ;(function cleanWatch() {
     var file
@@ -58,6 +61,7 @@ function log() {
 
   Walker(dirname)
     .on('file', function(file) {
+      if (!~extensions.indexOf(path.extname(file).slice(1).toLowerCase()) && !~extensions.indexOf('.')) return
       watched.push(file)
       fs.watchFile(file, function(curr, prev) {
         if (curr.mtime != prev.mtime) {
@@ -71,11 +75,11 @@ function log() {
       log('got error ' + er + ' on target ' + target)
     })
     
-  log('watching:', dirname)
-  log('starting:', app[1], args.join(' '))
+  log('watching dir:', dirname)
+  log('starting:', app[2], args.join(' '))
 
   try {
-    proc = child_process.spawn(app[1], args)
+    proc = child_process.spawn(app[2], args)
   } catch(e) {
     log('failed to run', app.join(' '), '\n', util.inspect(e))
     log('trying again in 2 seconds...')

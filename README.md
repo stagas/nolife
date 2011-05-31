@@ -13,9 +13,11 @@ Installation
 Usage
 -----
 
-    nolife <dir> <program> [param] [...]
+    nolife <dirname_to_watch> <ext,ens,ion,s,to,wa,tch> <program> [param] [...]
 
-Example
--------
+Examples
+--------
 
-    nolife . node app
+    nolife . . node app
+    nolife views jade node app
+    nolife server js,json,jade node server/app.js

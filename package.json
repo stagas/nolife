@@ -1,6 +1,6 @@
 { "name" : "nolife"
 , "description" : "nolife restarts an application if a file changes"
-, "version" : "0.0.1"
+, "version" : "0.0.2"
 , "homepage" : "https://github.com/stagas/nolife"
 , "author" : "George Stagas <gstagas@gmail.com> (http://stagas.com/)"
 , "repository" :
