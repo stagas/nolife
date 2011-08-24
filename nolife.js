@@ -42,7 +42,7 @@ log('watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join('
       fs.unwatchFile(file)
     }
   }())
-    
+
   function kill() {
     try {
       proc.kill('SIGHUP')
@@ -64,7 +64,7 @@ log('watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join('
       if (!~extensions.indexOf(path.extname(file).slice(1).toLowerCase()) && !~extensions.indexOf('.')) return
       watched.push(file)
       fs.watchFile(file, function(curr, prev) {
-        if (curr.mtime != prev.mtime) {
+        if (+curr.mtime !== +prev.mtime) {
           log('changed:', file)
           log('exiting in 2 seconds...')
           restart(2000)
@@ -74,7 +74,7 @@ log('watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join('
     .on('error', function(er, target, stat) {
       log('got error ' + er + ' on target ' + target)
     })
-    
+
   log('watching dir:', dirname)
   log('starting:', app[2], args.join(' '))
 
