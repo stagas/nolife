@@ -25,4 +25,7 @@ Options:
 ```
 $ nolife app.js
 
-$ nolife node app.js -e js,jade
+$ nolife app.js -e js,jade
+
+$ nolife node app.js -d mydir
+```
