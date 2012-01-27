@@ -4,8 +4,8 @@ nolife restarts an application if a file changes
 
 ## Installation
 
-`npm install nolife`
-    
+`npm install nolife -g`
+
 ## Usage
 
 ```
