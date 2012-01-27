@@ -13,105 +13,149 @@ var util = require('util')
   , Walker = require('walker')
   , proc
   , watched = []
-  
-if (process.argv.length <= 4) {
-  console.log('usage: nolife <dirname_to_watch> <ext,ens,ion,s,to,wa,tch> <program> [param] [...]')
-  process.exit()
-}
 
-process.title = 'nolife ' + process.argv.slice(2).join(' ')
-
-function log() {
+function log () {
   var args = [].slice.call(arguments)
-  args.unshift(new Date().toDateString(), new Date().toLocaleTimeString())
+  //args.unshift(new Date().toUTCString())
   console.log.apply(console, args)
 }
 
-var extensions = process.argv[3].toLowerCase().split(',')
-log('watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join(' .'))
+var argv = process.argv.slice(2), arg
 
-;(function respawn(app) {
+if (argv.length === 0) {
+  var help = [
+    'Usage: nolife [options] <program> [params]'
+  , ''
+  , '  program ....... Executable program'
+  , '  params ........ Optional parameters'
+  , ''
+  , 'Options:'
+  , ''
+  , '  -d, --dir ..... Directory name to watch [.]'
+  , '  -e, --ext ..... Extensions to watch [js,json]'
+  ].join('\n')
+  log(help)
+  process.exit()
+}
+
+log([
+  '+------+'
+, ' nolife '
+, '+------+'
+].join('\n'))
+
+argv.params = []
+argv.dir = '.'
+argv.ext = 'js,json'
+
+if (argv.length === 1) {
+  argv.program = 'node'
+  argv.params = [ argv[0] ]
+} else {
+  while (arg = argv.shift()) {
+    if (arg == '-d' || arg == '--dir') argv.dir = argv.shift()
+    else if (arg == '-e' || arg == '--ext') argv.ext = argv.shift()
+    else if (!argv.program) argv.program = arg
+    else argv.params.push(arg)
+  }
+}
+
+process.title = 'node nolife ' + argv.join(' ')
+
+var extensions = argv.ext.toLowerCase().split(',')
+log('Watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join(' .'))
+
+;(function respawn (app) {
   var restartTimeout
-    , filename = path.join(process.cwd(), app[0])
+    , filename = path.join(process.cwd(), app.dir)
     , dirname = path.resolve(filename)
-    , args = app.slice(3)
+    , args = app.params
 
-  ;(function cleanWatch() {
-    var file
-    while (file = watched.pop()) {
-      fs.unwatchFile(file)
+  ;(function cleanWatch () {
+    var watcher, n = 0
+    while (watcher = watched.pop()) {
+      n++
+      watcher.close()
     }
+    if (n) log('Closed fs watchers')
   }())
 
-  function kill() {
+  function kill () {
     try {
-      proc.kill('SIGHUP')
+      proc.kill()
     } catch(e) {
-      log('could not kill process')
-      console.dir(e)
+      log('Can\'t kill process')
+      log(e)
     }
   }
 
-  function restart(ms) {
+  function restart (ms) {
     clearTimeout(restartTimeout)
-    restartTimeout = setTimeout(function() {
+    restartTimeout = setTimeout(function () {
+      restartTimeout = null
       kill()
     }, ms)
   }
 
   Walker(dirname)
-    .on('file', function(file) {
+    .on('file', function (file) {
       if (!~extensions.indexOf(path.extname(file).slice(1).toLowerCase()) && !~extensions.indexOf('.')) return
-      watched.push(file)
-      fs.watchFile(file, function(curr, prev) {
-        if (+curr.mtime !== +prev.mtime) {
-          log('changed:', file)
-          log('exiting in 2 seconds...')
+      var watcher = fs.watch(file, function (event, filename) {
+        if (event === 'change' && !restartTimeout) {
+          if (filename) {
+            log('!!! Changed:', filename)
+            log(file)
+          }
+          log('Exiting in 2 seconds...')
           restart(2000)
         }
       })
+      watched.push(watcher)
     })
     .on('error', function(er, target, stat) {
       log('got error ' + er + ' on target ' + target)
     })
 
-  log('watching dir:', dirname)
-  log('starting:', app[2], args.join(' '))
+  log('Watching dir:', dirname)
+  log('Starting:', app.program, args.join(' '))
 
   try {
-    proc = child_process.spawn(app[2], args)
+    proc = child_process.spawn(app.program, args)
   } catch(e) {
-    log('failed to run', app.join(' '), '\n', util.inspect(e))
-    log('trying again in 2 seconds...')
+    log('*** Failed to run', app.join(' '), '\n', util.inspect(e))
+    log('Trying again in 2 seconds...')
     return setTimeout(function() {
       respawn(app)
     }, 2000)
   }
 
-  log('\n\n--started--\n')
+  log('-----------------------------')
 
   proc.stdout.on('data', function (data) {
     process.stdout.write(data)
   })
 
   proc.stderr.on('data', function (data) {
-    util.print(data)
+    process.stderr.write(data)
   })
 
   proc.on('exit', function (err, sig) {
+    log('Process exited')
     if (err) {
-      log('process exited with error:', err, sig)
-      log('restarting in 2 seconds...')
-      setTimeout(function() {
-        respawn(app)
-      }, 2000)
-    } else {
-      log('process exited gracefully')
-      log('restarting in 2 seconds...')
-      setTimeout(function() {
-        respawn(app)
-      }, 2000)
+      log('    with error:', err, sig)
+      if (err == 127) {
+        console.log('Not executable, retrying with node')
+        app.params.unshift(app.program)
+        app.program = 'node'
+        return setTimeout(function () {
+          respawn(app)
+        }, 500)
+      }
     }
+    log('Restarting in 2 seconds...')
+    setTimeout(function() {
+      respawn(app)
+    }, 2000)
   })
 
-}(process.argv.slice(2)))
+}(argv))

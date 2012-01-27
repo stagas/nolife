@@ -1,23 +1,28 @@
-nolife
-======
+# nolife
 
 nolife restarts an application if a file changes
 
+## Installation
 
-Installation
-------------
-
-    npm install nolife
-
+`npm install nolife`
     
-Usage
------
+## Usage
 
-    nolife <dirname_to_watch> <ext,ens,ion,s,to,wa,tch> <program> [param] [...]
+```
+Usage: nolife [options] <program> [params]
 
-Examples
---------
+  program ....... Executable program
+  params ........ Optional parameters
 
-    nolife . . node app
-    nolife views jade node app
-    nolife server js,json,jade node server/app.js
+Options:
+
+  -d, --dir ..... Directory name to watch [.]
+  -e, --ext ..... Extensions to watch [js,json]
+```
+
+## Examples
+
+```
+$ nolife app.js
+
+$ nolife node app.js -e js,jade

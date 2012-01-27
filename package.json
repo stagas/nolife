@@ -1,13 +1,20 @@
-{ "name" : "nolife"
-, "description" : "nolife restarts an application if a file changes"
-, "version" : "0.0.3"
-, "homepage" : "https://github.com/stagas/nolife"
-, "author" : "George Stagas <gstagas@gmail.com> (http://stagas.com/)"
-, "repository" :
-  { "type" : "git"
-  , "url" : "https://github.com/stagas/nolife.git"
-  }
-, "main": "./nolife"
-, "bin" : { "nolife" : "./nolife.js" }
-, "engines" : { "node" : "*" }
+{
+  "author": "George Stagas <gstagas@gmail.com> (http://stagas.com)",
+  "name": "nolife",
+  "description": "Restart an application if a file changes",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stagas/nolife.git"
+  },
+  "engines": {
+    "node": "~0.6.8"
+  },
+  "bin": {
+    "nolife": "nolife.js"
+  },
+  "dependencies": {
+    "walker": "~0.0.4"
+  },
+  "devDependencies": {}
 }
