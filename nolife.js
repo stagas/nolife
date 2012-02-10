@@ -100,17 +100,19 @@ log('Watching extensions:', extensions[0] == '.' ? '*' : '.' + extensions.join('
   Walker(dirname)
     .on('file', function (file) {
       if (!~extensions.indexOf(path.extname(file).slice(1).toLowerCase()) && !~extensions.indexOf('.')) return
-      var watcher = fs.watch(file, function (event, filename) {
-        if (event === 'change' && !restartTimeout) {
-          if (filename) {
-            log('!!! Changed:', filename)
-            log(file)
+      try {
+        var watcher = fs.watch(file, function (event, filename) {
+          if (event === 'change' && !restartTimeout) {
+            if (filename) {
+              log('!!! Changed:', filename)
+              log(file)
+            }
+            log('Exiting in 2 seconds...')
+            restart(2000)
           }
-          log('Exiting in 2 seconds...')
-          restart(2000)
-        }
-      })
-      watched.push(watcher)
+        })
+        watched.push(watcher)
+      } catch (_) {}
     })
     .on('error', function(er, target, stat) {
       log('got error ' + er + ' on target ' + target)
