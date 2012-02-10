@@ -2,7 +2,7 @@
   "author": "George Stagas <gstagas@gmail.com> (http://stagas.com)",
   "name": "nolife",
   "description": "Restart an application if a file changes",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/stagas/nolife.git"
